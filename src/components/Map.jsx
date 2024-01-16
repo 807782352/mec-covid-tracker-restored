@@ -1,4 +1,6 @@
 import {
+  Button,
+  ButtonGroup,
   FormControl,
   InputLabel,
   MenuItem,
@@ -14,23 +16,25 @@ import {
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import {
+  CircleMarker,
   MapContainer as LeafletMap,
-  Marker,
   Popup,
   TileLayer,
+  useMap,
 } from "react-leaflet";
 import "./Map.css";
 import { timeFormater } from "../utils/utils";
 
 export default function Map() {
-  const initialMapCenter = { lat: 34.80746, lng: -40.4796 };
-  const initialMapZoom = 13;
+  const initialMapCenter = [35, 105];
+  const initialMapZoom = 3;
+  const initialCategory = "cases";
 
   // List of all countries
   const [countryList, setCountryList] = useState([]);
 
   // Data from the whole countries in the world
-  const [countriesData, setCountriesData] = useState({});
+  const [countriesData, setCountriesData] = useState([]);
 
   // Data from the specific country
   const [curCountry, setCurCountry] = useState({});
@@ -38,6 +42,12 @@ export default function Map() {
   const [isLoading, setIsLoading] = useState(true);
   const [mapCenter, setMapCenter] = useState(initialMapCenter);
   const [mapZoom, setMapZoom] = useState(initialMapZoom);
+
+  const [category, setCategory] = useState(initialCategory);
+
+  const handleChangeCategory = (c) => {
+    setCategory(c);
+  };
 
   useEffect(() => {
     const getWorldInfo = async () => {
@@ -114,7 +124,7 @@ export default function Map() {
           .then((res) => res.json())
           .then((data) => {
             setCurCountry(data);
-            setMapCenter([data.countryInfo.lat, data.countryInfo.lng]);
+            setMapCenter([data.countryInfo.lat, data.countryInfo.long]);
             setMapZoom(4);
           });
       } catch (error) {
@@ -135,20 +145,42 @@ export default function Map() {
     },
   };
 
+
+  const casesTypeColors = {
+    cases: {
+      hex: "#029FDC",
+      rgb: "rgb(2,159,220)",
+      half_op: "rgba(2, 159, 220, 0.5)",
+      highlight: "#FF6A1A",
+    },
+    recovered: {
+      hex: "#73C43D",
+      rgb: "rgb(125, 215, 29)",
+      half_op: "rgba(125, 215, 29, 0.5)",
+      highlight: "#FF000C",
+    },
+    deaths: {
+      hex: "#fb4443",
+      rgb: "rgb(251, 68, 67)",
+      half_op: "rgba(251, 68, 67, 0.5)",
+      highlight: "#012345",
+    },
+  };
+
   return (
     <div className="container">
       <div className="basic-info">
         <div className="list">
           <FormControl className="app_header" sx={{ m: 2, width: 300 }}>
             <InputLabel id="select-country" size="string">
-              Country
+              Country / Region
             </InputLabel>
             <Select
               labelId="select-country"
               variant="filled"
               value={curCountry?.country || "World"}
               onChange={handleChangeCountry}
-              input={<OutlinedInput label="Country" />}
+              input={<OutlinedInput label="Country / Region" />}
               MenuProps={MenuProps}
               autoWidth
             >
@@ -174,7 +206,11 @@ export default function Map() {
             </Select>
           </FormControl>
         </div>
-        {!isLoading && <span className="time">Last Data Updated at:  {timeFormater(curCountry.updated)}</span>}
+        {!isLoading && (
+          <span className="time">
+            Last Data Updated at: {timeFormater(curCountry.updated)}
+          </span>
+        )}
       </div>
 
       {isLoading ? (
@@ -184,7 +220,6 @@ export default function Map() {
           <TableContainer
             component={Paper}
             className="table"
-            sx={{ margin: 2, maxWidth: 300 }}
           >
             <Table aria-label="world table">
               <TableHead sx={{ background: "#029fdc" }}>
@@ -277,10 +312,33 @@ export default function Map() {
               </TableBody>
             </Table>
           </TableContainer>
+
           <div className="map">
+            <ButtonGroup
+              variant="contained"
+              orientation="vertical"
+              aria-label="vertical  primary button group"
+              sx={{
+                position: "absolute",
+                zIndex: 1000,
+                right: "4rem",
+                top: "2rem",
+              }}
+            >
+              <Button onClick={() => handleChangeCategory("cases")}>
+                Cases
+              </Button>
+              <Button onClick={() => handleChangeCategory("recovered")}>
+                Recovered
+              </Button>
+              <Button onClick={() => handleChangeCategory("deaths")}>
+                Deaths
+              </Button>
+            </ButtonGroup>
+
             <LeafletMap
-              center={[51.505, -0.09]}
-              zoom={13}
+              center={mapCenter}
+              zoom={mapZoom}
               scrollWheelZoom={false}
               className="leafMap"
             >
@@ -288,15 +346,104 @@ export default function Map() {
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
-              <Marker position={[51.505, -0.09]}>
-                <Popup>
-                  A pretty CSS3 popup. <br /> Easily customizable.
-                </Popup>
-              </Marker>
+
+              {category === "cases" &&
+                countriesData.map((item, index) => {
+                  return (
+                    <CircleMarker
+                      center={[item.countryInfo.lat, item.countryInfo.long]}
+                      weight={item.country === curCountry?.country ? 4 : 2}
+                      radius={
+                        (Math.log(item.casesPerOneMillion) / Math.log(5)) *
+                        (mapZoom + 1)
+                      }
+                      color={
+                        item.country === curCountry?.country
+                          ? casesTypeColors[category].highlight
+                          : casesTypeColors[category].hex
+                      }
+                      key={index}
+                    >
+                      <Popup>
+                        Country / Region: {item.country} <br />
+                        Daily Cases: {item.todayCases} <br />
+                        Total Cases: {item.cases}
+                      </Popup>
+                    </CircleMarker>
+                  );
+                })}
+              {category === "deaths" &&
+                countriesData.map((item, index) => {
+                  return (
+                    <CircleMarker
+                      center={[item.countryInfo.lat, item.countryInfo.long]}
+                      weight={item.country === curCountry?.country ? 4 : 2}
+                      radius={
+                        (Math.log(item.deathsPerOneMillion) / Math.log(5)) *
+                        (mapZoom + 1)
+                      }
+                      key={index}
+                      color={
+                        item.country === curCountry?.country
+                          ? casesTypeColors[category].highlight
+                          : casesTypeColors[category].hex
+                      }
+                    >
+                      <Popup>
+                        Country / Region: {item.country} <br />
+                        Daily Deaths: {item.todayDeaths} <br />
+                        Total Deaths: {item.deaths}
+                      </Popup>
+                    </CircleMarker>
+                  );
+                })}
+              {category === "recovered" &&
+                countriesData.map((item, index) => {
+                  return (
+                    <CircleMarker
+                      center={[item.countryInfo.lat, item.countryInfo.long]}
+                      weight={item.country === curCountry?.country ? 4 : 2}
+                      radius={
+                        (Math.log(item.recoveredPerOneMillion) / Math.log(5)) *
+                        (mapZoom + 1)
+                      }
+                      key={index}
+                      color={
+                        item.country === curCountry?.country
+                          ? casesTypeColors[category].highlight
+                          : casesTypeColors[category].hex
+                      }
+                    >
+                      <Popup>
+                        Country / Region: {item.country} <br />
+                        Daily Recovered: {item.todayRecovered} <br />
+                        Total Recovered: {item.recovered}
+                      </Popup>
+                    </CircleMarker>
+                  );
+                })}
+
+                <MapComponent />
             </LeafletMap>
           </div>
         </div>
       )}
     </div>
   );
+}
+
+
+function MapComponent() {
+  const map = useMap();
+
+  // 设置边界
+  const bounds = [
+    [-89.98155760646617, -180], // 左下角的纬度和经度
+    [89.99346179538875, 180]  // 右上角的纬度和经度
+  ];
+  
+  // 应用边界限制
+  map.setMaxBounds(bounds);
+
+  return null;
 }

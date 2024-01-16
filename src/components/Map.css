@@ -5,10 +5,15 @@
 }
 
 .basic-info {
-    width: calc(100% - 4rem);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  width: calc(100% - 4rem);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.table {
+  margin: 1rem;
+  max-width: 300px;
 }
 
 .display {
@@ -18,8 +23,25 @@
   justify-content: space-between;
   align-items: flex-start;
 }
+
+@media screen and (max-width: 850px) {
+  .display {
+    width: 100%;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .table {
+    position: relative;
+    margin: 1rem;
+    max-width: calc(100% - 4rem);
+  }
+}
+
 .map {
   width: 100%;
+  position: relative;
 }
 
 .leafMap {
@@ -31,4 +53,3 @@
 .time {
   font-style: italic;
 }
-
