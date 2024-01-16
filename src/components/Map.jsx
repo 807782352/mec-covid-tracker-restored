@@ -24,6 +24,8 @@ import {
 } from "react-leaflet";
 import "./Map.css";
 import { timeFormater } from "../utils/utils";
+import { CircleLoader } from "react-spinners";
+
 
 export default function Map() {
   const initialMapCenter = [35, 105];
@@ -145,7 +147,6 @@ export default function Map() {
     },
   };
 
-
   const casesTypeColors = {
     cases: {
       hex: "#029FDC",
@@ -214,13 +215,10 @@ export default function Map() {
       </div>
 
       {isLoading ? (
-        <div>Loading ... </div>
+        <CircleLoader color="#1976d2" className="loader" />
       ) : (
         <div className="display">
-          <TableContainer
-            component={Paper}
-            className="table"
-          >
+          <TableContainer component={Paper} className="table">
             <Table aria-label="world table">
               <TableHead sx={{ background: "#029fdc" }}>
                 <TableRow>
@@ -423,7 +421,7 @@ export default function Map() {
                   );
                 })}
 
-                <MapComponent />
+              <MapComponent />
             </LeafletMap>
           </div>
         </div>
@@ -432,16 +430,15 @@ export default function Map() {
   );
 }
 
-
 function MapComponent() {
   const map = useMap();
 
   // 设置边界
   const bounds = [
     [-89.98155760646617, -180], // 左下角的纬度和经度
-    [89.99346179538875, 180]  // 右上角的纬度和经度
+    [89.99346179538875, 180], // 右上角的纬度和经度
   ];
-  
+
   // 应用边界限制
   map.setMaxBounds(bounds);
 
