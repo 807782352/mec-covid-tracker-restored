@@ -24,20 +24,6 @@
   align-items: flex-start;
 }
 
-@media screen and (max-width: 850px) {
-  .display {
-    width: 100%;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: flex-start;
-  }
-
-  .table {
-    position: relative;
-    margin: 1rem;
-    max-width: calc(100% - 4rem);
-  }
-}
 
 .map {
   width: 100%;
@@ -52,4 +38,30 @@
 
 .time {
   font-style: italic;
+}
+
+
+@media screen and (max-width: 850px) {
+  .display {
+    width: 100%;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .table {
+    position: relative;
+    margin: 1rem;
+    max-width: calc(100% - 4rem);
+  }
+
+  .time {
+    font-size: 0.85rem;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .time {
+    font-size: 0.7rem;
+  }
 }
