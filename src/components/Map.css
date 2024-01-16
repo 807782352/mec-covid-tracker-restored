@@ -55,13 +55,13 @@
     max-width: calc(100% - 4rem);
   }
 
-  .time {
-    font-size: 0.85rem;
-  }
-}
 
-@media screen and (max-width: 600px) {
+  .basic-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .time {
-    font-size: 0.7rem;
+    margin-left: 1rem;
   }
 }
